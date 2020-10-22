@@ -246,7 +246,7 @@ class Mag_Admin {
 							<th scope="now"><?php _e( 'Select your store', 'mag-products-integration' ); ?></th>
 							<td>
 								<div style="display: flex; align-items: center;">
-									<select name="mag_products_integration_selected_store_class">
+									<select name="mag_products_integration_selected_store_class" id="mag_products_integration_selected_store_class">
 										<?php foreach ( magepress_store_manager()->get_available_stores() as $store_class => $label ): ?>
 											<option <?php selected( $store_class, get_option( 'mag_products_integration_selected_store_class', Store_Magento1::class ) ) ?> value="<?php esc_attr_e( $store_class ) ?>"><?php esc_html_e( $label ) ?></option>
 										<?php endforeach; ?>

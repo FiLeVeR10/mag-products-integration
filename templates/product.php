@@ -8,15 +8,13 @@ $product = $magepress['product'];
 
 do_action( 'mag_products_integration_before_product', $product );
 ?>
+<div class="product-item-info" data-container="product-grid">
 
 <?php if ( ! $magepress['hide_image'] && $product->has_image() ):
 	do_action( 'mag_products_integration_before_image', $product ); ?>
-
-	<div class="image">
-		<a href="<?php echo esc_url( $product->get_url() ) ?>" target="<?php esc_attr_e( $magepress['target'] ) ?>">
-			<?php echo $product->get_image( $magepress['image_width'], $magepress['image_height'] ) ?>
-		</a>
-	</div>
+	<a href="<?php echo esc_url( $product->get_url() ) ?>" target="<?php esc_attr_e( $magepress['target'] ) ?>" class="product photo product-item-photo">
+		<?php echo $product->get_image( $magepress['image_width'], $magepress['image_height'] ) ?>
+	</a>
 
 	<?php
 	do_action( 'mag_products_integration_after_image', $product );
@@ -51,6 +49,6 @@ endif; ?>
 <?php do_action( 'mag_products_integration_before_add_to_cart_button', $product ); ?>
 <?php echo sprintf( '<div class="url"><a class="view-details" href="%1$s">%2$s</a></div>', $product->get_url(), __( 'View details', 'mag-products-integration' ) ) ?>
 <?php do_action( 'mag_products_integration_after_add_to_cart_button', $product ); ?>
-
+</div>
 <?php
-do_action( 'mag_products_integration_after_product', $magepress['product'] );
+do_action( 'mag_products_integration_after_product', $magepress['product'] ); ?>

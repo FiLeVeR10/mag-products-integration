@@ -37,11 +37,11 @@ abstract class Store_Abstract implements Store_Interface {
 		if ( ! empty( $products ) ) {
 			ob_start();
 			do_action( 'mag_products_integration_before_products' );
-			echo '<div class="' . esc_attr( trim( implode( ' ', array( 'magento-wrapper', $this->get_array_value( $atts, 'class', '' ) ) ) ) ) . '">';
-			echo '<ul class="products">';
+			echo '<div class="products wrapper grid products-grid ' . esc_attr( trim( implode( ' ', array( 'magento-wrapper', $this->get_array_value( $atts, 'class', '' ) ) ) ) ) . '">';
+			echo '<ol class="products list items row">';
 			foreach ( $products as $product ) {
 				if ( $product instanceof Mag_Product ) {
-					echo '<li class="product">';
+					echo '<li class="item product col-sm-12 col-md-6 col-lg-4">';
 					$this->get_template_part(
 						'templates/product',
 						$custom_template,
@@ -61,7 +61,7 @@ abstract class Store_Abstract implements Store_Interface {
 					echo '</li>';
 				}
 			}
-			echo '</ul>';
+			echo '</ol>';
 			echo '</div>';
 			do_action( 'mag_products_integration_after_products' );
 			$html = ob_get_clean();
@@ -106,7 +106,14 @@ abstract class Store_Abstract implements Store_Interface {
 				continue;
 			}
 
-			$file_path = plugin_dir_path( dirname( dirname( __FILE__ ) ) ) . '/' . $template_name;
+			$theme_file = get_template_directory() . '/' . $template_name;
+
+			if (file_exists( $theme_file )) {
+				$file_path = $theme_file;
+			} else {
+				$file_path = plugin_dir_path(dirname(dirname(__FILE__))) . '/' . $template_name;
+			}
+
 			if ( file_exists( $file_path ) ) {
 				if ( is_array( $variables ) ) {
 					$variables = array( 'magepress' => $variables );
@@ -136,8 +143,11 @@ abstract class Store_Abstract implements Store_Interface {
 	protected function get_array_value( array $array, $key, $default_value = null, $cast = null ) {
 		$key = strtolower( trim( $key ) );
 
+
 		$key_parts = explode( '.', $key );
-		if ( count( $key_parts ) > 1 ) {
+
+
+		if ( count( $key_parts ) > 1 && is_array($array[$key_parts[0]]) ) {
 			return $this->get_array_value( $array[ $key_parts[0] ], implode( '.', array_slice( $key_parts, 1 ) ), $default_value );
 		} else {
 			$value = ! empty( $array[ $key_parts[0] ] ) ? $array[ $key_parts[0] ] : $default_value;

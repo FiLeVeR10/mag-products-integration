@@ -43,8 +43,8 @@ class Store_Magento2 extends Store_Abstract {
 			'target' => '',
 			'dir' => 'desc',
 			'order' => 'entity_id',
-			'prefix' => '',
-			'suffix' => ' $',
+			'prefix' => '$',
+			'suffix' => '',
 			'image_width' => '',
 			'image_height' => '',
 			'hide_image' => false,
@@ -55,12 +55,68 @@ class Store_Magento2 extends Store_Abstract {
 		if ( $base_url && filter_var( $base_url, FILTER_VALIDATE_URL ) ) {
 			$base_url = rtrim( $base_url, '/' );
 			$path = '/rest/V1/products';
-			if ( $atts['store'] ) {
-				$path = '/rest/' . $atts['store'] . '/V1/products';
+			if ( $atts['limit'] ) {
+				$atts['limit'] = $atts['limit']+1;
 			}
+
+			// TODO There is only 1 store, but if it's set to 1, it doesn't get a response. `all` and the default still work fine
+//			if ( $atts['store'] ) {
+//				$path = '/rest/' . $atts['store'] . '/V1/products';
+//			}
 			$url = $base_url . $path;
+
+			$sku_filter = array();
+			if ($atts['sku']) {
+				$skus = explode(',', $atts['sku']);
+
+				foreach ($skus as $sku) {
+					$sku_filter[] = [
+						'field' => 'sku',
+						'condition_type' => 'IN',
+						'value' => str_replace(' ', '', $sku),
+					];
+				}
+			}
+
+			$name_filter = array();
+			if ($atts['sku']) {
+				$names = explode(',', $atts['name']);
+
+				foreach ($names as $name) {
+					$name_filter[] = [
+							'field' => 'name',
+							'condition_type' => 'LIKE',
+							'value' => str_replace(' ', '', $name),
+					];
+				}
+			}
+
+			// TODO Doesn't appear that the products call can be filtered by categories, adding a category call may be needed to make that happen
+
+			$filters = array_merge($sku_filter, $name_filter);
+
+			// TODO How does the user specify visibility?
 			$query = http_build_query( [
 				'searchCriteria' => [
+					'filter_groups' => [
+						[
+							'filters' => [
+								[
+									'field' => 'visibility',
+									'value' => '2', //VISIBLE_IN_CATALOG
+								],
+								// OR
+								[
+									'field' => 'visibility',
+									'value' => '4', //VISIBLE_IN_BOTH
+								],
+							],
+						],
+						[
+							'filters' => $filters, //add filters
+						],
+					],
+					//add by name
 					'pageSize' => $atts['limit'],
 					'sortOrders' => [
 						[
@@ -71,6 +127,7 @@ class Store_Magento2 extends Store_Abstract {
 				],
 			] );
 			$url = $url . '?' . $query;
+
 			$response = wp_remote_get( $url, [
 				'headers' => [
 					'Authorization' => 'Bearer ' . get_option( 'mag_products_integration_m2_access_token' ),
@@ -153,12 +210,13 @@ class Store_Magento2 extends Store_Abstract {
 			}
 		}
 
-		if ( empty( $image_url ) ) {
-			$image_path = $this->get_array_value( $product, 'media_gallery_entries.0.file' );
-			if ( ! empty( $image_path ) ) {
-				$image_url = $base_url . '/media/catalog/product' . $image_path;
-			}
-		}
+		// TODO This method causes an error in get_array_value, a check was added to make sure $array[$key_parts[0]] is in fact an array before it's run through get_array_value again
+//		if ( empty( $image_url ) ) {
+//			$image_path = $this->get_array_value( $product, 'media_gallery_entries.0.file' );
+//			if ( ! empty( $image_path ) ) {
+//				$image_url = $base_url . '/media/catalog/product' . $image_path;
+//			}
+//		}
 
 		return $image_url;
 	}
@@ -168,7 +226,7 @@ class Store_Magento2 extends Store_Abstract {
 		$url = '';
 
 		if ( $url_key ) {
-			$url = $base_url . '/' . $url_key . '.html';
+			$url = $base_url . '/' . $url_key;
 		}
 
 		return $url;

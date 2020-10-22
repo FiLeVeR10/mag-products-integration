@@ -55,6 +55,7 @@ class Mag_Product {
 		ob_start(); ?>
 		<img
 			src="<?php esc_attr_e( $this->get_image_url() ) ?>"
+			class="product-image-photo"
 			alt="<?php esc_attr_e( $this->get_name() ) ?>"
 			<?php echo $width ? 'width="' . esc_attr( $width ) . '"' : '' ?>
 			<?php echo $height ? 'width="' . esc_attr( $height ) . '"' : '' ?>
@@ -87,5 +88,11 @@ class Mag_Product {
 
 	public function get_special_price() {
 		return floatval( $this->get( 'special_price', 0 ) );
+	}
+
+	public function get_sku() {
+		if ($this->get( 'sku', 0 )) {
+			return $this->get( 'sku', 0 );
+		}
 	}
 }
