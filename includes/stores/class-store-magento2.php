@@ -59,8 +59,8 @@ class Store_Magento2 extends Store_Abstract
 		if ($base_url && filter_var($base_url, FILTER_VALIDATE_URL)) {
 			$base_url = rtrim($base_url, '/');
 			$path = '/rest/V1/products';
-			if ($atts['limit']) {
-				$atts['limit'] = $atts['limit'] + 1;
+			if ($atts['limit'] && is_numeric($atts['limit'])) {
+				$atts['limit'] = intval($atts['limit']) + 1;
 			}
 
 			// TODO There is only 1 store, but if it's set to 1, it doesn't get a response. `all` and the default still work fine
