@@ -58,7 +58,7 @@ class Store_Magento2 extends Store_Abstract
 		$base_url = get_option('mag_products_integration_m2_base_url');
 		if ($base_url && filter_var($base_url, FILTER_VALIDATE_URL)) {
 			$base_url = rtrim($base_url, '/');
-			$path = '/rest/V1/products';
+			$path = '/rest/all/V1/products-render-info';
 			if ($atts['limit'] && is_numeric($atts['limit'])) {
 				$atts['limit'] = intval($atts['limit']) + 1;
 			}
@@ -101,35 +101,17 @@ class Store_Magento2 extends Store_Abstract
 
 			// TODO How does the user specify visibility?
 			$query = http_build_query([
+					'currencyCode' => 'USD',
+					'storeId' => '1',
 					'searchCriteria' => [
 							'filter_groups' => [
 									[
-											'filters' => [
-													[
-															'field' => 'visibility',
-															'value' => '2', //VISIBLE_IN_CATALOG
-													],
-												// OR
-													[
-															'field' => 'visibility',
-															'value' => '4', //VISIBLE_IN_BOTH
-													],
-											],
-									],
-									[
-											'filters' => $filters, //add filters
-									],
-							],
-						//add by name
-							'pageSize' => $atts['limit'],
-							'sortOrders' => [
-									[
-											'field' => $this->get_array_value($atts, 'order', 'entity_id', 'string'),
-											'direction' => $this->get_array_value($atts, 'dir', 'desc', 'string'),
+											'filters' => $filters,
 									],
 							],
 					],
 			]);
+
 			$url = $url . '?' . $query;
 
 			$response = wp_remote_get($url, [
@@ -138,19 +120,23 @@ class Store_Magento2 extends Store_Abstract
 					],
 			]);
 
+
+
 			if (is_array($response) && !empty($response['body']) && $response['response']['code'] == 200) {
 				$magento_products = json_decode($response['body'], true);
+
 				if (isset($magento_products['items'])) {
 					$products = [];
 					foreach ($magento_products['items'] as $product) {
+
 						$products[] = new Mag_Product([
 								'name' => $product['name'],
-								'sku' => $product['sku'],
-								'image_url' => $this->get_image_url($base_url, $product),
-								'url' => $this->get_url($base_url, $product),
-								'short_description' => $this->get_custom_attribute($this->get_array_value($product, 'custom_attributes', [], 'array'), 'short_description', ''),
-								'price' => $this->get_array_value($product, 'price'),
-								'special_price' => $this->get_special_price($product),
+								'sku' => $product['extension_attributes']['extra_info']['sku'],
+								'image_url' => $product['images'][0]['url'],
+								'url' => $product['url'],
+								'short_description' => $product['extension_attributes']['extra_info']['short_description'],
+								'price' => $product['price_info']['final_price'],
+								'special_price' => ['price_info']['special_price'],
 						]);
 					}
 
